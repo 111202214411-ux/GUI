@@ -15,7 +15,7 @@ conf = st.slider("Batas keyakinan", 0.1, 1.0, 0.25, 0.05)
 file = st.file_uploader("Upload gambar", type=["jpg", "jpeg", "png"])
 if file:
     img = Image.open(file).convert("RGB")
-    hasil = model(img, conf=conf)[0]
+    hasil = model(img, conf=conf, agnostic_nms=True)[0]
     st.image(hasil.plot()[:, :, ::-1], caption="Hasil deteksi")
     if len(hasil.boxes) == 0:
         st.warning("Tidak ada botol terdeteksi.")
