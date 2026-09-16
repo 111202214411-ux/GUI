@@ -1,5 +1,4 @@
 import io
-from collections import Counter
 
 import pandas as pd
 import streamlit as st
@@ -30,7 +29,8 @@ with st.sidebar:
     st.divider()
     st.subheader("Tentang aplikasi")
     st.write("Algoritma: YOLOv8n")
-    st.write("Kelas: " + ", ".join(INFO.get(n, (n,))[0] for n in model.names.values()))
+    daftar_kelas = [INFO.get(n, (n, "-"))[0] for n in model.names.values()]
+    st.write("Kelas: " + ", ".join(daftar_kelas))
     st.write("Dataset: Drinking Waste Classification (Kaggle)")
 
 # ---------- Halaman utama ----------
@@ -63,10 +63,22 @@ if len(hasil.boxes) == 0:
 
 # Tabel hasil
 data = []
+jumlah = {}
 for box in hasil.boxes:
     kelas = model.names[int(box.cls)]
     nama, saran = INFO.get(kelas, (kelas, "-"))
-    data.append({"Jenis": nama, "Keyakinan": f"{float(box.conf):.0%}", "Saran pemilahan": saran})
+    keyakinan = float(box.conf)
+    data.append({"Jenis": nama, "Keyakinan": f"{keyakinan:.0%}", "Saran pemilahan": saran})
+    jumlah[nama] = jumlah.get(nama, 0) + 1
 
 st.subheader(f"Terdeteksi {len(data)} benda")
-jumlah =
+kolom_list = st.columns(len(jumlah))
+for kolom, jenis in zip(kolom_list, jumlah):
+    kolom.metric(jenis, jumlah[jenis])
+
+st.table(pd.DataFrame(data))
+
+# Tombol unduh
+buf = io.BytesIO()
+gambar_hasil.save(buf, format="PNG")
+st.download_button("⬇️ Unduh hasil deteksi", buf.getvalue(), "hasil_deteksi.png", "image/png")
